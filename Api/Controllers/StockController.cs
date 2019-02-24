@@ -10,6 +10,11 @@ namespace Api.Controllers
 {
     public class StockController : ApiController
     {
+
+
+        StockContext _context = new StockContext();
+
+        private static List<StockModel> listaEstoque = new List<StockModel>();
         // GET api/<controller>
         public IEnumerable<StockModel> Get()
         {
@@ -31,28 +36,88 @@ namespace Api.Controllers
         }
 
         // GET api/<controller>/5
-        public string Get(int id)
+        public StockModel Get(string id)
         {
-            return "value";
+            var memberdetail = (from a in _context.Stock where a.Id == id select a).FirstOrDefault();
+
+            return memberdetail;
         }
 
         // POST api/<controller>
-        public void Post([FromBody]StockModel value)
+        public HttpResponseMessage Post([FromBody]StockModel value)
         {
+            // _context.Stock.InsertOnSubmit(value);
 
+            //Save the submitted record  
+            // _context.SubmitChanges();
+
+            //return response status as successfully created with member entity  
+            var msg = Request.CreateResponse(HttpStatusCode.Created, value);
+
+            //Response message with requesturi for check purpose  
+            msg.Headers.Location = new Uri(Request.RequestUri + value.Id.ToString());
+
+            return msg;
         }
 
         // PUT api/<controller>/5
-        public void Put(int id, [FromBody]string value)
+        public HttpResponseMessage Put(int id, [FromBody]StockModel value)
         {
-        }
-        public void Patch(int id, [FromBody] StockModel value)
-        {
+            //fetching and filter specific member id record   
+            var memberdetail = (from a in _context.Stock where a.Id == id.ToString() select a).FirstOrDefault();
+
+            //checking fetched or not with the help of NULL or NOT.  
+            if (memberdetail != null)
+            {
+                //set received _member object properties with memberdetail  
+                memberdetail.DateOpened = value.DateOpened;
+
+                //save set allocation.  
+                //_context.SubmitChanges();
+
+                //return response status as successfully updated with member entity  
+                return Request.CreateResponse(HttpStatusCode.OK, memberdetail);
+            }
+            else
+            {
+                //return response error as NOT FOUND  with message.  
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Invalid Code or Member Not Found");
+            }
 
         }
-        // DELETE api/<controller>/5
-        public void Delete(int id)
+        public HttpResponseMessage Patch(int id, [FromBody] StockModel value)
         {
+            var memberdetail = (from a in _context.Stock where a.Id == id.ToString() select a).FirstOrDefault();
+
+            //checking fetched or not with the help of NULL or NOT.  
+            if (memberdetail != null)
+            {
+                //set received _member object properties with memberdetail  
+                memberdetail.DateOpened = value.DateOpened;
+
+                //save set allocation.  
+                //_context.SubmitChanges();
+
+                //return response status as successfully updated with member entity  
+                return Request.CreateResponse(HttpStatusCode.OK, memberdetail);
+            }
+            else
+            {
+                //return response error as NOT FOUND  with message.  
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Invalid Code or Member Not Found");
+            }
+        }
+        // DELETE api/<controller>/5
+        public string Delete(string id)
+        {
+
+            StockModel estoque = listaEstoque.Where(n => n.Id == id)
+                                               .Select(n => n)
+                                               .First();
+
+            listaEstoque.Remove(estoque);
+
+            return "Registro excluido com sucesso!";
         }
     }
 }
